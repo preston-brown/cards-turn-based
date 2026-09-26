@@ -12,6 +12,18 @@
         {{ view.message }}
     }
     @case('loaded') {
-        You have joined {{ view.room.name }}
+        <div>
+            You have joined {{ view.room.name }}
+            <p></p>
+            You are {{ player()?.name }}
+        </div>
+        <div>
+            <h2>Players</h2>
+            <ul>
+                @for (roomPlayer of players(); track roomPlayer.id) {
+                    <li>{{ roomPlayer.name }}</li>
+                }
+            </ul>
+        </div>
     }
 }
