@@ -1,0 +1,31 @@
+<section class="create-room">
+	<p class="eyebrow">NEW GAME</p>
+	<h1>Create a room</h1>
+	<p class="intro">Give your table a name to get started.</p>
+
+	<form [formGroup]="form" (ngSubmit)="createRoom()">
+		<label for="room-name">Room name</label>
+		<div class="form-row">
+			<input
+				id="room-name"
+				type="text"
+				formControlName="name"
+				placeholder="Friday night cards"
+				maxlength="60"
+			/>
+			<button type="submit" [disabled]="creating || form.invalid">
+				{{ creating ? 'Creating…' : 'Create room' }}
+			</button>
+		</div>
+	</form>
+
+	@if (createdRoom) {
+		<p class="success" role="status">
+			Room “{{ createdRoom.name }}” created. Room ID: <code>{{ createdRoom.id }}</code>
+		</p>
+	}
+
+	@if (errorMessage) {
+		<p class="error" role="alert">{{ errorMessage }}</p>
+	}
+</section>

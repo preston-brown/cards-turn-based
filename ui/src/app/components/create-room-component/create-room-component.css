@@ -1,0 +1,101 @@
+.create-room {
+	width: min(100%, 620px);
+	margin: 28px auto 0;
+}
+
+.eyebrow {
+	margin: 0 0 10px;
+	color: #a65f2b;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+h1 {
+	margin: 0;
+	color: #193b38;
+	font-size: 34px;
+	font-weight: 700;
+}
+
+.intro {
+	margin: 10px 0 30px;
+	color: #586462;
+	font-size: 16px;
+}
+
+form label {
+	display: block;
+	margin-bottom: 8px;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.form-row {
+	display: flex;
+	gap: 10px;
+}
+
+input {
+	flex: 1;
+	min-width: 0;
+	min-height: 46px;
+	padding: 0 13px;
+	border: 1px solid #aab5af;
+	border-radius: 4px;
+	background: #fff;
+	color: #202a2e;
+	font: inherit;
+}
+
+input:focus-visible,
+button:focus-visible {
+	outline: 3px solid #e7aa58;
+	outline-offset: 2px;
+}
+
+button {
+	min-height: 46px;
+	padding: 0 18px;
+	border: 0;
+	border-radius: 4px;
+	background: #a65f2b;
+	color: #fff;
+	cursor: pointer;
+	font: inherit;
+	font-weight: 700;
+}
+
+button:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.success,
+.error {
+	margin-top: 18px;
+	line-height: 1.6;
+	overflow-wrap: anywhere;
+}
+
+.success {
+	color: #193b38;
+}
+
+.error {
+	color: #a32727;
+}
+
+@media (max-width: 520px) {
+	.create-room {
+		margin-top: 10px;
+	}
+
+	h1 {
+		font-size: 29px;
+	}
+
+	.form-row {
+		align-items: stretch;
+		flex-direction: column;
+	}
+}

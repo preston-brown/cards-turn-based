@@ -1,0 +1,17 @@
+@let view = state();
+
+@switch (view.status) {
+    @case('loading') {
+        Loading...
+    }
+    @case('not-found') {
+        This room does not exist. You can always create your own!
+    }
+    @case('error') {
+        Something went wrong.
+        {{ view.message }}
+    }
+    @case('loaded') {
+        You have joined {{ view.room.name }}
+    }
+}
