@@ -113,12 +113,12 @@ app.get<{ Params: { id: string } }>(
   "/ws/rooms/:id",
   { websocket: true },
   (socket, request) => {
-    const playerToken = request.cookies.playerToken;
-    if (playerToken === undefined) {
+    const token = request.cookies.userToken;
+    if (token === undefined) {
       socket.close(1008, "Missing token");
       return;
     }
-    const player = roomService.findUserByToken(playerToken);
+    const player = roomService.findUserByToken(token);
     if (player === undefined) {
       socket.close(1008, "Invalid token");
       return;
@@ -129,7 +129,7 @@ app.get<{ Params: { id: string } }>(
       return;
     }
     socketService.addSocketToRoom(socket, roomId);
-    roomService.broadcastRoomPlayers(roomId);
+    roomService.broadcastPlayersByRoomId(roomId);
     socket.on("close", () => {
       socketService.removeSocketFromRoom(socket, roomId);
     });
