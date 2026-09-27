@@ -59,7 +59,6 @@ export class RoomComponent implements OnDestroy, OnInit {
     const subscription = this.roomSocketService.connect(this.roomId).subscribe({
       next: (players) => {
         this.players.set(players);
-        console.log(players);
       },
       error: (error) => {
         console.log(error);

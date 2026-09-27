@@ -1,9 +1,10 @@
-import Fastify, { FastifyReply } from "fastify";
+import Fastify, { FastifyRequest, FastifyReply } from "fastify";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import websocket from "@fastify/websocket";
 
 import { RoomService } from "./services/room-service.js";
+import { SocketService } from "./services/socket-service.js";
 
 const app = Fastify({
   logger: true,
@@ -17,53 +18,25 @@ await app.register(cors, {
   credentials: true,
 });
 
-const roomService = new RoomService();
+const socketService = new SocketService();
+const roomService = new RoomService(socketService);
 
-const roomSockets = new Map<string, Set<WebSocket>>();
-
-function getPlayersByRoom(roomId: string): PublicPlayer[] {
-  return players
-    .filter((p) => p.room === roomId)
-    .map((p) => ({ id: p.id, name: p.name }));
-}
-
-function broadcastPlayers(roomId: string) {
-  const message = JSON.stringify({
-    type: "players",
-    players: getPlayersByRoom(roomId),
-  });
-  for (const socket of roomSockets.get(roomId) ?? []) {
-    if (socket.readyState === WebSocket.OPEN) {
-      socket.send(message);
+app.get<{ Params: { id: string } }>(
+  "/api/players/:id",
+  async (request, reply) => {
+    if (!request.cookies.playerToken) {
+      return reply.code(401).send();
     }
-  }
-}
-
-const lastPlayerIdByRoom = new Map<string, number>();
-
-function assignPlayerId(roomId: string): number {
-  const result = (lastPlayerIdByRoom.get(roomId) ?? 0) + 1;
-  lastPlayerIdByRoom.set(roomId, result);
-  return result;
-}
-
-interface Player {
-  id: number;
-  name: string;
-  token: string;
-  room: string | null;
-}
-
-type PublicPlayer = Pick<Player, "id" | "name">;
-
-const players: Player[] = [];
-
-interface Room {
-  id: string;
-  name: string;
-}
-
-const rooms: Room[] = [];
+    const player = roomService.findUser(request.params.id);
+    if (!player) {
+      return reply.code(404).send();
+    }
+    if (player.token !== request.cookies.playerToken) {
+      return reply.code(403).send();
+    }
+    return player;
+  },
+);
 
 interface CreateRoomRequest {
   name: string;
@@ -95,7 +68,7 @@ app.get("/api/rooms", async (request, reply) => {
 app.get<{ Params: { id: string } }>(
   "/api/rooms/:id",
   async (request, reply) => {
-    const room = roomService.getRoom(request.params.id);
+    const room = roomService.findRoom(request.params.id);
 
     if (!room) {
       return reply.code(404).send();
@@ -109,94 +82,59 @@ app.post<{ Params: { id: string } }>(
   "/api/rooms/:id/join",
   async (request, reply) => {
     const roomId = request.params.id;
-    const room = roomService.getRoom(roomId);
-
+    const room = roomService.findRoom(roomId);
     if (!room) {
       return reply.code(404).send();
     }
-
-    let playerToken = request.cookies.playerToken;
-
-    if (playerToken) {
-      const player = players.find((p) => p.token === playerToken);
-      if (player) {
-        if (player.room && player.room !== roomId) {
-          const oldRoomId = player.room;
-          player.room = null;
-          broadcastPlayers(oldRoomId);
-          player.room = roomId;
-        }
-        return {
-          id: player.id,
-          name: player.name,
-        };
-      }
-    }
-    return createNewPlayer(roomId, reply);
+    const userId = getUser(request.cookies.userToken, reply);
+    roomService.addToRoom(userId, roomId);
+    return reply.code(204).send();
   },
 );
 
-function addSocketToRoom(socket: WebSocket, roomId: string) {
-  let sockets = roomSockets.get(roomId);
-  if (!sockets) {
-    sockets = new Set();
-    roomSockets.set(roomId, sockets);
+function getUser(userToken: string | undefined, reply: FastifyReply): string {
+  if (userToken) {
+    const user = roomService.findUserByToken(userToken);
+    if (user) {
+      return user.id;
+    }
   }
-  sockets.add(socket);
-}
-
-function removeSocketFromRoom(socket: WebSocket, roomId: string) {
-  const sockets = roomSockets.get(roomId);
-  sockets?.delete(socket);
-  if (sockets?.size === 0) {
-    roomSockets.delete(roomId);
-  }
+  const user = roomService.createUser();
+  reply.setCookie("userToken", user.token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: false,
+    path: "/",
+  });
+  return user.id;
 }
 
 app.get<{ Params: { id: string } }>(
   "/ws/rooms/:id",
   { websocket: true },
   (socket, request) => {
-    const player = players.find((p) => p.token === request.cookies.playerToken);
-    if (!player || player.room !== request.params.id) {
+    const playerToken = request.cookies.playerToken;
+    if (playerToken === undefined) {
+      socket.close(1008, "Missing token");
+      return;
+    }
+    const player = roomService.findUserByToken(playerToken);
+    if (player === undefined) {
+      socket.close(1008, "Invalid token");
+      return;
+    }
+    const roomId = request.params.id;
+    if (!roomService.isMember(player.id, roomId)) {
       socket.close(1008, "Not a member of this room");
       return;
     }
-    addSocketToRoom(socket, request.params.id);
-
-    broadcastPlayers(request.params.id);
-
+    socketService.addSocketToRoom(socket, roomId);
+    roomService.broadcastRoomPlayers(roomId);
     socket.on("close", () => {
-      removeSocketFromRoom(socket, request.params.id);
+      socketService.removeSocketFromRoom(socket, roomId);
     });
   },
 );
-
-function createNewPlayer(roomId: string, reply: FastifyReply) {
-  const playerId = assignPlayerId(roomId);
-  const playerName = `Player ${playerId}`;
-  const playerToken = crypto.randomUUID();
-  reply.setCookie("playerToken", playerToken, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    path: "/",
-  });
-
-  players.push({
-    id: playerId,
-    name: playerName,
-    token: playerToken,
-    room: roomId,
-  });
-
-  broadcastPlayers(roomId);
-
-  return {
-    id: playerId,
-    name: `Player ${playerId}`,
-  };
-}
 
 const port = Number(process.env.PORT ?? 3000);
 
