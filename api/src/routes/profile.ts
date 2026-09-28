@@ -1,8 +1,10 @@
 import type { FastifyPluginAsync, FastifyReply } from "fastify";
 import type { RoomService } from "../services/room-service.js";
+import { UserService } from "../services/user-service.js";
 
 interface PluginOptions {
   roomService: RoomService;
+  userService: UserService;
 }
 
 interface PatchProfileRequest {
@@ -25,14 +27,14 @@ const patchProfileRequestSchema = {
 
 export const profileRoutes: FastifyPluginAsync<PluginOptions> = async (
   app,
-  { roomService },
+  { roomService, userService },
 ) => {
   (app.get("", async (request, reply) => {
     const userToken = request.cookies.userToken;
     if (!userToken) {
       return reply.code(401).send();
     }
-    const user = roomService.findUserByToken(userToken);
+    const user = userService.findUserByToken(userToken);
     if (!user) {
       return reply.code(403).send();
     }
@@ -49,13 +51,14 @@ export const profileRoutes: FastifyPluginAsync<PluginOptions> = async (
         if (!userToken) {
           return reply.code(401).send();
         }
-        const user = roomService.findUserByToken(userToken);
+        const user = userService.findUserByToken(userToken);
         if (!user) {
           return reply.code(403).send();
         }
         const name = request.body.name;
         if (name) {
-          roomService.setUserName(user.id, name);
+          userService.setUserName(user.id, name);
+          roomService.broadcastNameChange(user.id);
         }
         return reply.code(204).send();
       },

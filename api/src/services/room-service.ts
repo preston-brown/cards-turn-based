@@ -1,5 +1,6 @@
 import { RoomDto } from "../model/room.js";
 import { SocketService } from "./socket-service.js";
+import { UserService } from "./user-service.js";
 
 let userCounter = 0;
 
@@ -39,24 +40,17 @@ class Room {
   }
 }
 
-class User {
-  constructor(
-    public readonly id: string,
-    public name: string,
-    public readonly token: string,
-  ) {}
-}
-
 export class RoomService {
   readonly ROOM_ID_ALPHABET =
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
   private readonly socketService: SocketService;
+  private readonly userService: UserService;
   readonly rooms: Room[] = [];
-  readonly users: User[] = [];
 
-  constructor(socketService: SocketService) {
+  constructor(socketService: SocketService, userService: UserService) {
     this.socketService = socketService;
+    this.userService = userService;
     this.rooms.push(new Room("1", "One", 4));
     this.rooms.push(new Room("2", "Two", 2));
   }
@@ -79,15 +73,6 @@ export class RoomService {
     this.broadcastPlayersByRoom(room);
   }
 
-  createUser(): User {
-    const id = crypto.randomUUID();
-    const name = `User ${++userCounter}`;
-    const token = crypto.randomUUID();
-    const user = new User(id, name, token);
-    this.users.push(user);
-    return user;
-  }
-
   createRoom(name: string): RoomDto {
     const id = this.generateRoomId();
     const room = new Room(id, name, 4);
@@ -96,14 +81,6 @@ export class RoomService {
       id,
       name,
     };
-  }
-
-  findUser(id: string): User | undefined {
-    return this.users.find((p) => p.id === id);
-  }
-
-  findUserByToken(token: string): User | undefined {
-    return this.users.find((p) => p.token === token);
   }
 
   findRoom(id: string): Room | undefined {
@@ -127,10 +104,7 @@ export class RoomService {
     this.broadcastPlayersByRoom(room);
   }
 
-  setUserName(userId: string, name: string) {
-    const user = this.users.find((u) => u.id === userId);
-    if (!user) return;
-    user.name = name;
+  broadcastNameChange(userId: string) {
     const room = this.findCurrentRoom(userId);
     if (!room) return;
     this.broadcastPlayersByRoom(room);
@@ -139,7 +113,7 @@ export class RoomService {
   private broadcastPlayersByRoom(room: Room) {
     const users = room
       .getUsers()
-      .map((userId) => this.users.find((u) => u.id === userId))
+      .map((userId) => this.userService.findUser(userId))
       .filter((u) => !!u)
       .map((u) => ({ id: u.id, name: u.name }));
     this.socketService.broadcastPlayers(room.id, users);

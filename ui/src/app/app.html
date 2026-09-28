@@ -1,12 +1,18 @@
 <header class="topbar">
-	<a class="brand" routerLink="/rooms/new" aria-label="Card Table home">Card Table</a>
-	<nav aria-label="Main navigation">
-		<a class="nav-link" routerLink="/rooms/new" routerLinkActive="active" ariaCurrentWhenActive="page">
-			Create a Room
-		</a>
-	</nav>
+  <a class="brand" routerLink="/rooms/new" aria-label="Card Table home">Card Table</a>
+  <nav aria-label="Main navigation">
+    <a
+      class="nav-link"
+      routerLink="/rooms/new"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+    >
+      Create a Room
+    </a>
+    <a class="nav-link">Log In</a>
+  </nav>
 </header>
 
 <main>
-	<router-outlet />
+  <router-outlet />
 </main>

@@ -2,15 +2,17 @@ import Fastify, { FastifyRequest, FastifyReply } from "fastify";
 import type { FastifyPluginAsync } from "fastify";
 import type { RoomService } from "../services/room-service.js";
 import type { SocketService } from "../services/socket-service.js";
+import { UserService } from "../services/user-service.js";
 
 interface PluginOptions {
   roomService: RoomService;
   socketService: SocketService;
+  userService: UserService;
 }
 
 export const webSocketRoutes: FastifyPluginAsync<PluginOptions> = async (
   app,
-  { roomService, socketService },
+  { roomService, socketService, userService },
 ) => {
   app.get<{ Params: { id: string } }>(
     "/:id",
@@ -21,13 +23,13 @@ export const webSocketRoutes: FastifyPluginAsync<PluginOptions> = async (
         socket.close(1008, "Missing token");
         return;
       }
-      const player = roomService.findUserByToken(token);
-      if (player === undefined) {
+      const user = userService.findUserByToken(token);
+      if (user === undefined) {
         socket.close(1008, "Invalid token");
         return;
       }
       const roomId = request.params.id;
-      if (!roomService.isMember(player.id, roomId)) {
+      if (!roomService.isMember(user.id, roomId)) {
         socket.close(1008, "Not a member of this room");
         return;
       }

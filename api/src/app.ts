@@ -8,10 +8,12 @@ import { SocketService } from "./services/socket-service.js";
 import { roomRoutes } from "./routes/rooms.js";
 import { webSocketRoutes } from "./routes/websockets.js";
 import { profileRoutes } from "./routes/profile.js";
+import { UserService } from "./services/user-service.js";
 
 export async function buildApp() {
   const socketService = new SocketService();
-  const roomService = new RoomService(socketService);
+  const userService = new UserService();
+  const roomService = new RoomService(socketService, userService);
 
   const app = Fastify({
     logger: true,
@@ -28,17 +30,20 @@ export async function buildApp() {
   await app.register(roomRoutes, {
     prefix: "/api/rooms",
     roomService,
+    userService,
   });
 
   await app.register(webSocketRoutes, {
     prefix: "/ws/rooms/",
     roomService,
     socketService,
+    userService,
   });
 
   await app.register(profileRoutes, {
     prefix: "/api/profile",
     roomService,
+    userService,
   });
 
   return app;

@@ -1,8 +1,10 @@
 import type { FastifyPluginAsync, FastifyReply } from "fastify";
 import type { RoomService } from "../services/room-service.js";
+import { UserService } from "../services/user-service.js";
 
 interface PluginOptions {
   roomService: RoomService;
+  userService: UserService;
 }
 
 interface CreateRoomRequest {
@@ -26,7 +28,7 @@ const createRoomRequestSchema = {
 
 export const roomRoutes: FastifyPluginAsync<PluginOptions> = async (
   app,
-  { roomService },
+  { roomService, userService },
 ) => {
   app.post<{ Body: CreateRoomRequest }>(
     "",
@@ -72,7 +74,7 @@ export const roomRoutes: FastifyPluginAsync<PluginOptions> = async (
     if (!userToken) {
       return reply.code(401).send();
     }
-    const user = roomService.findUserByToken(userToken);
+    const user = userService.findUserByToken(userToken);
     if (!user) {
       return reply.code(403).send();
     }
@@ -82,12 +84,12 @@ export const roomRoutes: FastifyPluginAsync<PluginOptions> = async (
 
   function getUser(userToken: string | undefined, reply: FastifyReply): string {
     if (userToken) {
-      const user = roomService.findUserByToken(userToken);
+      const user = userService.findUserByToken(userToken);
       if (user) {
         return user.id;
       }
     }
-    const user = roomService.createUser();
+    const user = userService.createUser();
     reply.setCookie("userToken", user.token, {
       httpOnly: true,
       sameSite: "lax",
