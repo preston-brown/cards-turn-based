@@ -7,6 +7,7 @@ import { RoomService } from "./services/room-service.js";
 import { SocketService } from "./services/socket-service.js";
 import { roomRoutes } from "./routes/rooms.js";
 import { webSocketRoutes } from "./routes/websockets.js";
+import { profileRoutes } from "./routes/profile.js";
 
 export async function buildApp() {
   const socketService = new SocketService();
@@ -33,6 +34,11 @@ export async function buildApp() {
     prefix: "/ws/rooms/",
     roomService,
     socketService,
+  });
+
+  await app.register(profileRoutes, {
+    prefix: "/api/profile",
+    roomService,
   });
 
   return app;

@@ -14,7 +14,12 @@ const createRoomRequestSchema = {
     type: "object",
     required: ["name"],
     properties: {
-      name: { type: "string", minLength: 1 },
+      name: {
+        type: "string",
+        minLength: 1,
+        maxLength: 30,
+        pattern: "^[A-Za-z0-9_-]$",
+      },
     },
   },
 } as const;

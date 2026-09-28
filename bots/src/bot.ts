@@ -10,25 +10,8 @@ export class Bot {
   async start() {
     console.log(`Starting ${this.name}`);
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/rooms/${this.roomId}/join`,
-        { method: "POST" },
-      );
-      if (response.status !== 204) {
-        throw Error(`${this.name} failed to join room`);
-      }
-      console.log(`${this.name} joined room`);
-      const userCookie = response.headers
-        .getSetCookie()
-        .find((c) => c.startsWith("userToken="));
-      if (!userCookie) {
-        throw Error(`${this.name} did not receive a userToken cookie`);
-      }
-      const cookiePair = userCookie.split(";", 1)[0];
-      if (cookiePair === undefined) {
-        throw new Error(`${this.name} received an invalid cookie`);
-      }
-      this.#userCookie = cookiePair;
+      this.#userCookie = await this.joinRoom();
+      await this.changeName(this.#userCookie);
       while (!this.#stopping) {
         await new Promise<void>((resolve) => setTimeout(resolve, 1000));
       }
@@ -53,5 +36,38 @@ export class Bot {
       }
     }
     console.log(`Stopped ${this.name}`);
+  }
+
+  private async joinRoom(): Promise<string> {
+    const response = await fetch(
+      `http://localhost:3000/api/rooms/${this.roomId}/join`,
+      { method: "POST" },
+    );
+    if (response.status !== 204) {
+      throw Error(`${this.name} failed to join room`);
+    }
+    console.log(`${this.name} joined room`);
+    const userCookie = response.headers
+      .getSetCookie()
+      .find((c) => c.startsWith("userToken="));
+    if (!userCookie) {
+      throw Error(`${this.name} did not receive a userToken cookie`);
+    }
+    const cookiePair = userCookie.split(";", 1)[0];
+    if (cookiePair === undefined) {
+      throw new Error(`${this.name} received an invalid cookie`);
+    }
+    return cookiePair;
+  }
+
+  private async changeName(cookie: string) {
+    const response = await fetch("http://localhost:3000/api/profile", {
+      method: "PATCH",
+      headers: { Cookie: cookie, "Content-Type": "application/json" },
+      body: JSON.stringify({ name: this.name }),
+    });
+    if (response.status !== 204) {
+      console.log(`${this.name} failed to change profile name`);
+    }
   }
 }

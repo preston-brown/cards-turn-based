@@ -42,7 +42,7 @@ class Room {
 class User {
   constructor(
     public readonly id: string,
-    public readonly name: string,
+    public name: string,
     public readonly token: string,
   ) {}
 }
@@ -124,6 +124,15 @@ export class RoomService {
     const room = this.rooms.find((r) => r.id === roomId);
     if (!room) return;
     room.removeUser(userId);
+    this.broadcastPlayersByRoom(room);
+  }
+
+  setUserName(userId: string, name: string) {
+    const user = this.users.find((u) => u.id === userId);
+    if (!user) return;
+    user.name = name;
+    const room = this.findCurrentRoom(userId);
+    if (!room) return;
     this.broadcastPlayersByRoom(room);
   }
 
