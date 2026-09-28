@@ -12,14 +12,31 @@
     {{ view.message }}
   }
   @case ('loaded') {
-    <div>You have joined {{ view.room.name }}</div>
-    <div>
-      <h2>Players</h2>
-      <ul>
-        @for (roomPlayer of players(); track roomPlayer.id) {
-          <li>{{ roomPlayer.name }}</li>
+    <section class="room-view">
+      <header class="room-header">
+        <div>
+          <p class="room-label">ROOM</p>
+          <h1>{{ view.room.name }}</h1>
+        </div>
+        <button class="leave-button" (click)="leaveRoom(view.room.id)">Leave room</button>
+      </header>
+
+      <section class="player-table" aria-label="Players around the table">
+        <div class="table-center" aria-hidden="true"></div>
+        @for (seatedPlayer of seatedPlayers(); track seatedPlayer.player.id) {
+          <article
+            class="player-seat"
+            [class.current-player]="seatedPlayer.player.id === profile()?.id"
+            [style.grid-area]="seatedPlayer.seat"
+          >
+            <span class="seat-position">{{ seatedPlayer.seat }}</span>
+            <strong>{{ seatedPlayer.player.name }}</strong>
+          </article>
         }
-      </ul>
-    </div>
+        @if (seatedPlayers().length === 0) {
+          <p class="table-status">Waiting for the player list...</p>
+        }
+      </section>
+    </section>
   }
 }

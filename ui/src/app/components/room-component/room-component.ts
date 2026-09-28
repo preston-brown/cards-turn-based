@@ -1,9 +1,9 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BackendService } from '../../services/backend-service';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Player, Room } from '../../models/models';
+import { Player, Profile, Room } from '../../models/models';
 import { RoomSocketService } from '../../services/room-socket-service';
 
 type ComponentState =
@@ -11,6 +11,8 @@ type ComponentState =
   | { status: 'not-found' }
   | { status: 'error'; message: string }
   | { status: 'loaded'; room: Room };
+
+const SEATS = ['south', 'west', 'north', 'east'] as const;
 
 @Component({
   imports: [],
@@ -20,14 +22,30 @@ type ComponentState =
 })
 export class RoomComponent implements OnDestroy, OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly backend = inject(BackendService);
   private readonly roomSocketService = inject(RoomSocketService);
-  private readonly subscriptions: Subscription[] = [];
 
   readonly roomId = this.route.snapshot.paramMap.get('id')!;
+
+  private readonly subscriptions: Subscription[] = [];
+
   readonly state = signal<ComponentState>({ status: 'loading' });
   readonly players = signal<Player[]>([]);
-  readonly player = signal<Player | null>(null);
+  readonly profile = signal<Profile | null>(null);
+
+  readonly seatedPlayers = computed(() => {
+    const players = this.players();
+    const currentPlayerId = this.profile()?.id;
+    const currentPlayerIndex = players.findIndex((player) => player.id === currentPlayerId);
+
+    if (currentPlayerIndex === -1) return [];
+
+    return players.map((player, index) => ({
+      player,
+      seat: SEATS[(index - currentPlayerIndex + SEATS.length) % SEATS.length],
+    }));
+  });
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((s) => s.unsubscribe());
@@ -46,8 +64,7 @@ export class RoomComponent implements OnDestroy, OnInit {
       return;
     }
     try {
-      const player = await firstValueFrom(this.backend.joinRoom(this.roomId));
-      this.player.set(player);
+      await firstValueFrom(this.backend.joinRoom(this.roomId));
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 404) {
         this.state.set({ status: 'not-found' });
@@ -65,6 +82,17 @@ export class RoomComponent implements OnDestroy, OnInit {
       },
     });
     this.subscriptions.push(subscription);
+    try {
+      const profile = await firstValueFrom(this.backend.getProfile());
+      this.profile.set(profile);
+    } catch (error) {
+      this.state.set({ status: 'error', message: this.extractMessage(error) });
+    }
+  }
+
+  async leaveRoom(roomId: string) {
+    await firstValueFrom(this.backend.leaveRoom(roomId));
+    await this.router.navigateByUrl('/');
   }
 
   private extractMessage(error: unknown): string {

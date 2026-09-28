@@ -27,23 +27,37 @@ export const profileRoutes: FastifyPluginAsync<PluginOptions> = async (
   app,
   { roomService },
 ) => {
-  app.patch<{ Body: PatchProfileRequest }>(
-    "",
-    { schema: patchProfileRequestSchema },
-    async (request, reply) => {
-      const userToken = request.cookies.userToken;
-      if (!userToken) {
-        return reply.code(401).send();
-      }
-      const user = roomService.findUserByToken(userToken);
-      if (!user) {
-        return reply.code(403).send();
-      }
-      const name = request.body.name;
-      if (name) {
-        roomService.setUserName(user.id, name);
-      }
-      return reply.code(204).send();
-    },
-  );
+  (app.get("", async (request, reply) => {
+    const userToken = request.cookies.userToken;
+    if (!userToken) {
+      return reply.code(401).send();
+    }
+    const user = roomService.findUserByToken(userToken);
+    if (!user) {
+      return reply.code(403).send();
+    }
+    return {
+      id: user.id,
+      name: user.name,
+    };
+  }),
+    app.patch<{ Body: PatchProfileRequest }>(
+      "",
+      { schema: patchProfileRequestSchema },
+      async (request, reply) => {
+        const userToken = request.cookies.userToken;
+        if (!userToken) {
+          return reply.code(401).send();
+        }
+        const user = roomService.findUserByToken(userToken);
+        if (!user) {
+          return reply.code(403).send();
+        }
+        const name = request.body.name;
+        if (name) {
+          roomService.setUserName(user.id, name);
+        }
+        return reply.code(204).send();
+      },
+    ));
 };
