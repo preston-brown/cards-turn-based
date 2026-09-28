@@ -32,7 +32,7 @@ class Room {
 
   removeUser(userId: string) {
     const index = this.#users.findIndex((u) => u === userId);
-    if (index === undefined) {
+    if (index === -1) {
       return;
     }
     this.#users[index] = null;
@@ -118,6 +118,13 @@ export class RoomService {
     const room = this.rooms.find((r) => r.id === roomId);
     if (!room) return false;
     return room.containsUser(userId);
+  }
+
+  removeFromRoom(userId: string, roomId: string) {
+    const room = this.rooms.find((r) => r.id === roomId);
+    if (!room) return;
+    room.removeUser(userId);
+    this.broadcastPlayersByRoom(room);
   }
 
   private broadcastPlayersByRoom(room: Room) {

@@ -12,14 +12,24 @@ async function main(args: string[]) {
   }
   const bots = Array.from(
     { length: Number(count) },
-    (_, index) => new Bot(BOT_NAMES[index] ?? `BOT_${index + 1}`),
+    (_, index) => new Bot(BOT_NAMES[index] ?? `BOT_${index + 1}`, roomId),
   );
-  console.log(`Created ${count} bots in room ${roomId}`);
-  process.once("SIGINT", () => {
+
+  let shutdownPromise: Promise<void> | undefined;
+
+  const handleShutdown = () => {
+    if (shutdownPromise) return;
     console.log("Stopping bots...");
-    void Promise.allSettled(bots.map((bot) => bot.stop()));
-  });
-  await Promise.all(bots.map((bot) => bot.start(roomId)));
+    shutdownPromise = Promise.allSettled(bots.map((bot) => bot.stop())).then(
+      () => undefined,
+    );
+  };
+
+  process.once("SIGINT", handleShutdown);
+  process.once("SIGTERM", handleShutdown);
+  console.log(`Created ${count} bots in room ${roomId}`);
+  await Promise.all(bots.map((bot) => bot.start()));
+  await shutdownPromise;
 }
 
 main(process.argv.slice(2)).catch((error) => {

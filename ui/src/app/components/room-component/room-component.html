@@ -1,29 +1,25 @@
 @let view = state();
 
 @switch (view.status) {
-    @case('loading') {
-        Loading...
-    }
-    @case('not-found') {
-        This room does not exist. You can always create your own!
-    }
-    @case('error') {
-        Something went wrong.
-        {{ view.message }}
-    }
-    @case('loaded') {
-        <div>
-            You have joined {{ view.room.name }}
-            <p></p>
-            You are {{ player()?.name }}
-        </div>
-        <div>
-            <h2>Players</h2>
-            <ul>
-                @for (roomPlayer of players(); track roomPlayer.id) {
-                    <li>{{ roomPlayer.name }}</li>
-                }
-            </ul>
-        </div>
-    }
+  @case ('loading') {
+    Loading...
+  }
+  @case ('not-found') {
+    This room does not exist.
+  }
+  @case ('error') {
+    Something went wrong.
+    {{ view.message }}
+  }
+  @case ('loaded') {
+    <div>You have joined {{ view.room.name }}</div>
+    <div>
+      <h2>Players</h2>
+      <ul>
+        @for (roomPlayer of players(); track roomPlayer.id) {
+          <li>{{ roomPlayer.name }}</li>
+        }
+      </ul>
+    </div>
+  }
 }
