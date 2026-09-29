@@ -11,7 +11,7 @@ export class BackendService {
   private readonly apiUrl = 'http://localhost:3000/api';
 
   createRoom(name: string): Observable<Room> {
-    return this.http.post<Room>(`${this.apiUrl}/rooms`, { name });
+    return this.http.post<Room>(`${this.apiUrl}/rooms`, { name }, { withCredentials: true });
   }
 
   getProfile(): Observable<Profile> {
@@ -19,7 +19,7 @@ export class BackendService {
   }
 
   getRoom(id: string): Observable<Room> {
-    return this.http.get<Room>(`${this.apiUrl}/rooms/${id}`);
+    return this.http.get<Room>(`${this.apiUrl}/rooms/${id}`, { withCredentials: true });
   }
 
   joinRoom(id: string): Observable<Player> {
@@ -28,5 +28,13 @@ export class BackendService {
 
   leaveRoom(id: string): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/rooms/${id}/leave`, {}, { withCredentials: true });
+  }
+
+  logIn(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/auth/login`, {}, { withCredentials: true });
+  }
+
+  logOut(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true });
   }
 }

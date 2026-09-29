@@ -5,10 +5,12 @@ import websocket from "@fastify/websocket";
 
 import { RoomService } from "./services/room-service.js";
 import { SocketService } from "./services/socket-service.js";
+import { UserService } from "./services/user-service.js";
+
+import { authRoutes } from "./routes/auth.js";
 import { roomRoutes } from "./routes/rooms.js";
 import { webSocketRoutes } from "./routes/websockets.js";
 import { profileRoutes } from "./routes/profile.js";
-import { UserService } from "./services/user-service.js";
 
 export async function buildApp() {
   const socketService = new SocketService();
@@ -43,6 +45,11 @@ export async function buildApp() {
   await app.register(profileRoutes, {
     prefix: "/api/profile",
     roomService,
+    userService,
+  });
+
+  await app.register(authRoutes, {
+    prefix: "/api/auth",
     userService,
   });
 

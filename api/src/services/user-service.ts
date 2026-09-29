@@ -19,18 +19,18 @@ export class UserService {
     return user;
   }
 
-  deleteUser(userId: string) {
-    const index = this.#users.findIndex((u) => u.id === userId);
+  deleteUser(id: string) {
+    const index = this.#users.findIndex((u) => u.id === id);
     if (index == -1) return;
     this.#users.splice(index, 1);
   }
 
   findUser(id: string): User | undefined {
-    return this.#users.find((p) => p.id === id);
+    return this.#users.find((u) => u.id === id);
   }
 
   findUserByToken(token: string): User | undefined {
-    return this.#users.find((p) => p.token === token);
+    return this.#users.find((u) => u.token === token);
   }
 
   setUserName(userId: string, name: string) {

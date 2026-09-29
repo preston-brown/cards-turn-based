@@ -1,70 +1,74 @@
 :host {
-	display: block;
-	min-height: 100vh;
-	color: #202a2e;
-	background: #f3f5f2;
-	font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  display: block;
+  min-height: 100vh;
+  color: #202a2e;
+  background: #f3f5f2;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
 }
 
 .topbar {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	min-height: 64px;
-	padding: 0 clamp(20px, 5vw, 72px);
-	color: #f7f6ef;
-	background: #193b38;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: 0 clamp(20px, 5vw, 72px);
+  color: #f7f6ef;
+  background: #193b38;
 }
 
 .brand {
-	color: inherit;
-	font-size: 18px;
-	font-weight: 700;
-	text-decoration: none;
+  color: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 nav {
-	display: flex;
-	align-items: stretch;
-	min-height: 64px;
+  display: flex;
+  align-items: stretch;
+  min-height: 64px;
 }
 
 .nav-link {
-	display: inline-flex;
-	align-items: center;
-	padding: 0 14px;
-	border-bottom: 3px solid transparent;
-	color: inherit;
-	font-size: 14px;
-	font-weight: 600;
-	text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
 }
 
 .nav-link:hover,
 .nav-link.active {
-	border-bottom-color: #e7aa58;
+  border-bottom-color: #e7aa58;
 }
 
 main {
-	padding: 44px 20px;
+  padding: 44px 20px;
 }
 
 @media (max-width: 520px) {
-	.topbar {
-		min-height: 58px;
-		padding: 0 16px;
-	}
+  .topbar {
+    min-height: 58px;
+    padding: 0 16px;
+  }
 
-	nav {
-		min-height: 58px;
-	}
+  nav {
+    min-height: 58px;
+  }
 
-	.nav-link {
-		padding: 0 8px;
-		font-size: 13px;
-	}
+  .nav-link {
+    padding: 0 8px;
+    font-size: 13px;
+  }
 
-	main {
-		padding: 30px 16px;
-	}
+  main {
+    padding: 30px 16px;
+  }
 }

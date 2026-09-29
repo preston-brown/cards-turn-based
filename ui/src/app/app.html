@@ -9,7 +9,11 @@
     >
       Create a Room
     </a>
-    <a class="nav-link">Log In</a>
+    @if (loggedIn()) {
+      <button class="nav-link" type="button" (click)="logOut()">Log Out</button>
+    } @else {
+      <button class="nav-link" type="button" (click)="logIn()">Log In</button>
+    }
   </nav>
 </header>
 
