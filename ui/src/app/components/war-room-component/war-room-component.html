@@ -1,0 +1,44 @@
+@let view = state();
+
+@switch (view.status) {
+  @case ('loading') {
+    Loading...
+  }
+  @case ('not-found') {
+    This room does not exist.
+  }
+  @case ('error') {
+    Something went wrong.
+    {{ view.message }}
+  }
+  @case ('loaded') {
+    <section class="room-view">
+      <header class="room-header">
+        <div>
+          <p class="room-label">ROOM</p>
+          <h1>{{ view.room.name }}</h1>
+          <h2>Welcome, {{ view.profile.name }}</h2>
+        </div>
+        <button class="leave-button" (click)="leaveRoom(view.room.id)">Leave room</button>
+      </header>
+      <div class="player-layout">
+        <section class="player-seat current-seat" aria-label="Your seat">
+          <p class="seat-label">You</p>
+          @if (currentPlayer(); as player) {
+            <h2>{{ player.name }}</h2>
+          } @else {
+            <p>Taking your seat...</p>
+          }
+        </section>
+        <section class="player-seat opponent-seat" aria-label="Opponent seats">
+          <p class="seat-label">Opponent</p>
+          @for (player of opponents(); track player.id) {
+            <h2>{{ player.name }}</h2>
+          } @empty {
+            <p>Waiting for an opponent...</p>
+          }
+        </section>
+      </div>
+    </section>
+  }
+}

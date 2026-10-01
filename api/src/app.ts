@@ -35,13 +35,6 @@ export async function buildApp() {
     userService,
   });
 
-  await app.register(webSocketRoutes, {
-    prefix: "/ws/rooms/",
-    roomService,
-    socketService,
-    userService,
-  });
-
   await app.register(profileRoutes, {
     prefix: "/api/profile",
     roomService,
@@ -50,6 +43,13 @@ export async function buildApp() {
 
   await app.register(authRoutes, {
     prefix: "/api/auth",
+    userService,
+  });
+
+  await app.register(webSocketRoutes, {
+    prefix: "/ws",
+    roomService,
+    socketService,
     userService,
   });
 

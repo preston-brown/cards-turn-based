@@ -11,7 +11,7 @@ export class UserService {
   #userCounter = 0;
 
   createUser(): User {
-    const id = crypto.randomUUID();
+    const id = `user-${crypto.randomUUID()}`;
     const name = `User ${++this.#userCounter}`;
     const token = crypto.randomUUID();
     const user = new User(id, name, token);

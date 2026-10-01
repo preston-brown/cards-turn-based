@@ -4,7 +4,7 @@ import { BackendService } from '../../services/backend-service';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Player, Profile, Room } from '../../models/models';
-import { RoomSocketService } from '../../services/room-socket-service';
+import { WebSocketService } from '../../services/web-socket-service';
 
 type ComponentState =
   | { status: 'loading' }
@@ -16,15 +16,15 @@ const SEATS = ['south', 'west', 'north', 'east'] as const;
 
 @Component({
   imports: [],
-  selector: 'app-room-component',
-  styleUrl: './room-component.css',
-  templateUrl: './room-component.html',
+  selector: 'app-player-room-component',
+  styleUrl: './player-room-component.css',
+  templateUrl: './player-room-component.html',
 })
-export class RoomComponent implements OnDestroy, OnInit {
+export class PlayerRoomComponent implements OnDestroy, OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly backend = inject(BackendService);
-  private readonly roomSocketService = inject(RoomSocketService);
+  private readonly roomSocketService = inject(WebSocketService);
 
   readonly roomId = this.route.snapshot.paramMap.get('id')!;
 
@@ -73,7 +73,7 @@ export class RoomComponent implements OnDestroy, OnInit {
       }
       return;
     }
-    const subscription = this.roomSocketService.connect(this.roomId).subscribe({
+    const subscription = this.roomSocketService.connectToRoom(this.roomId).subscribe({
       next: (players) => {
         this.players.set(players);
       },

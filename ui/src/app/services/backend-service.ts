@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Player, PlayerJoin, Profile, Room } from '../models/models';
+import { Player, PlayerJoin, Profile, Room, RoomListItem } from '../models/models';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -22,8 +22,16 @@ export class BackendService {
     return this.http.get<Room>(`${this.apiUrl}/rooms/${id}`, { withCredentials: true });
   }
 
-  joinRoom(id: string): Observable<Player> {
-    return this.http.post<Player>(`${this.apiUrl}/rooms/${id}/join`, {}, { withCredentials: true });
+  getRooms(): Observable<RoomListItem[]> {
+    return this.http.get<RoomListItem[]>(`${this.apiUrl}/rooms`);
+  }
+
+  joinRoom(id: string): Observable<PlayerJoin> {
+    return this.http.post<PlayerJoin>(
+      `${this.apiUrl}/rooms/${id}/join`,
+      {},
+      { withCredentials: true },
+    );
   }
 
   leaveRoom(id: string): Observable<void> {

@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { BackendService } from '../../services/backend-service';
 import { Room } from '../../models/models';
+import { Router } from '@angular/router';
 
 @Component({
   imports: [ReactiveFormsModule],
@@ -13,6 +14,7 @@ import { Room } from '../../models/models';
 export class CreateRoomComponent {
   private readonly formBuilder = inject(FormBuilder);
   private readonly backendService = inject(BackendService);
+  private readonly router = inject(Router);
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(60), Validators.pattern(/\S/)]],
   });
@@ -34,11 +36,9 @@ export class CreateRoomComponent {
 
     try {
       this.createdRoom = await firstValueFrom(this.backendService.createRoom(name));
-      this.form.reset();
+      this.router.navigate(['/rooms']);
     } catch (error) {
-      this.errorMessage = error instanceof Error
-        ? error.message
-        : 'Could not create the room.';
+      this.errorMessage = error instanceof Error ? error.message : 'Could not create the room.';
     } finally {
       this.creating = false;
     }

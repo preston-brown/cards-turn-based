@@ -20,7 +20,7 @@ const createRoomRequestSchema = {
         type: "string",
         minLength: 1,
         maxLength: 30,
-        pattern: "^[A-Za-z0-9_-]$",
+        pattern: "^[A-Za-z0-9_-]+$",
       },
     },
   },
@@ -34,7 +34,9 @@ export const roomRoutes: FastifyPluginAsync<PluginOptions> = async (
     "",
     { schema: createRoomRequestSchema },
     async (request, reply) => {
-      const room = roomService.createRoom(request.body.name);
+      const name = request.body.name;
+
+      const room = roomService.createRoom(name);
       return reply.code(201).send(room);
     },
   );
@@ -60,8 +62,8 @@ export const roomRoutes: FastifyPluginAsync<PluginOptions> = async (
       return reply.code(404).send();
     }
     const userId = getUser(request.cookies.userToken, reply);
-    roomService.addToRoom(userId, roomId);
-    return reply.code(204).send();
+    const playerId = roomService.addToRoom(userId, roomId);
+    return reply.code(200).send({ playerId });
   });
 
   app.post<{ Params: { id: string } }>("/:id/leave", async (request, reply) => {

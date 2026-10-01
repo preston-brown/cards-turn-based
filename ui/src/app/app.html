@@ -1,14 +1,7 @@
 <header class="topbar">
-  <a class="brand" routerLink="/rooms/new" aria-label="Card Table home">Card Table</a>
+  <a class="brand" routerLink="/" aria-label="Card Table home">Card Table</a>
   <nav aria-label="Main navigation">
-    <a
-      class="nav-link"
-      routerLink="/rooms/new"
-      routerLinkActive="active"
-      ariaCurrentWhenActive="page"
-    >
-      Create a Room
-    </a>
+    <a class="nav-link" routerLink="/admin/rooms">Rooms</a>
     @if (loggedIn()) {
       <button class="nav-link" type="button" (click)="logOut()">Log Out</button>
     } @else {

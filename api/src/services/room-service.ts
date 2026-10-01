@@ -2,41 +2,63 @@ import { RoomDto } from "../model/room.js";
 import { SocketService } from "./socket-service.js";
 import { UserService } from "./user-service.js";
 
-let userCounter = 0;
+export enum GameType {
+  WAR = "war",
+  CRAZY_EIGHTS = "crazy_eights",
+  OLD_MAID = "old_maid",
+}
+
+interface Player {
+  userId: string;
+  playerId: string;
+  position: number;
+}
 
 class Room {
-  #users: (string | null)[];
+  #players: (Player | null)[];
 
   constructor(
     public readonly id: string,
     public readonly name: string,
-    public readonly size: number,
+    public readonly maxPlayers: number,
+    public readonly type: GameType,
   ) {
-    this.#users = Array(size).fill(null);
+    this.#players = Array(maxPlayers).fill(null);
   }
 
-  addUser(userId: string) {
-    const index = this.#users.findIndex((u) => u === null);
+  addPlayer(userId: string): string {
+    const index = this.#players.findIndex((p) => p === null);
     if (index === -1) {
       throw Error("Room is full");
     }
-    this.#users[index] = userId;
+    const playerId = `player-${crypto.randomUUID()}`;
+    this.#players[index] = {
+      playerId,
+      userId,
+      position: index,
+    };
+    return playerId;
   }
 
-  getUsers(): string[] {
-    return this.#users.filter((u) => u !== null);
+  getPlayerId(userId: string): string | undefined {
+    const player = this.#players.find((p) => p?.userId === userId);
+    return player?.playerId;
+  }
+
+  getPlayers(): Player[] {
+    return this.#players.filter((u) => u !== null);
   }
 
   containsUser(userId: string): boolean {
-    return this.#users.includes(userId);
+    return this.#players.some((p) => p && p.userId === userId);
   }
 
   removeUser(userId: string) {
-    const index = this.#users.findIndex((u) => u === userId);
+    const index = this.#players.findIndex((p) => p && p.userId === userId);
     if (index === -1) {
       return;
     }
-    this.#users[index] = null;
+    this.#players[index] = null;
   }
 }
 
@@ -51,20 +73,28 @@ export class RoomService {
   constructor(socketService: SocketService, userService: UserService) {
     this.socketService = socketService;
     this.userService = userService;
-    this.rooms.push(new Room("1", "One", 4));
-    this.rooms.push(new Room("2", "Two", 2));
+    this.rooms.push(new Room("1", "FightFightFight", 2, GameType.WAR));
+    this.rooms.push(new Room("2", "Craziness", 4, GameType.CRAZY_EIGHTS));
+    this.rooms.push(new Room("3", "Golden Age", 4, GameType.OLD_MAID));
   }
 
-  addToRoom(userId: string, roomId: string) {
+  addToRoom(userId: string, roomId: string): string {
+    const room = this.rooms.find((r) => r.id === roomId);
+    if (!room) {
+      throw new Error("Room does not exist");
+    }
+    const currentPlayerId = room.getPlayerId(userId);
+    if (currentPlayerId) {
+      return currentPlayerId;
+    }
     const currentRoom = this.findCurrentRoom(userId);
     if (currentRoom) {
       currentRoom.removeUser(userId);
       this.broadcastPlayersByRoom(currentRoom);
     }
-    const room = this.rooms.find((r) => r.id === roomId);
-    if (!room) return;
-    room.addUser(userId);
+    const playerId = room.addPlayer(userId);
     this.broadcastPlayersByRoom(room);
+    return playerId;
   }
 
   broadcastPlayersByRoomId(roomId: string) {
@@ -75,7 +105,7 @@ export class RoomService {
 
   createRoom(name: string): RoomDto {
     const id = this.generateRoomId();
-    const room = new Room(id, name, 4);
+    const room = new Room(id, name, 2, GameType.WAR);
     this.rooms.push(room);
     return {
       id,
@@ -111,12 +141,18 @@ export class RoomService {
   }
 
   private broadcastPlayersByRoom(room: Room) {
-    const users = room
-      .getUsers()
-      .map((userId) => this.userService.findUser(userId))
-      .filter((u) => !!u)
-      .map((u) => ({ id: u.id, name: u.name }));
-    this.socketService.broadcastPlayers(room.id, users);
+    let players = [];
+    for (const player of room.getPlayers()) {
+      const user = this.userService.findUser(player.userId);
+      if (user) {
+        players.push({
+          id: player.playerId,
+          name: user.name,
+          position: player.position,
+        });
+      }
+    }
+    this.socketService.broadcastPlayersToRoom(room.id, players);
   }
 
   private generateRoomId() {

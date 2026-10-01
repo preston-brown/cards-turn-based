@@ -1,0 +1,86 @@
+.number-column {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.text-column {
+  text-align: left;
+}
+
+.actions-column {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.actions-column .add-remove-button {
+  margin-bottom: 0;
+}
+
+.add-remove-button {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 4px;
+  color: #f7f6ef;
+  background: #193b38;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-room-button:hover {
+  background: #102e2c;
+}
+
+.create-room-button:focus-visible {
+  outline: 3px solid #e7aa58;
+  outline-offset: 2px;
+}
+
+table {
+  width: min(100%, 900px);
+  border: 1px solid #d5ddd7;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  color: #202a2e;
+  background: #fff;
+  font-size: 14px;
+}
+
+thead {
+  background: #e8eeea;
+  color: #193b38;
+}
+
+th,
+td {
+  padding: 12px 16px;
+}
+
+th {
+  border-bottom: 2px solid #c6d2ca;
+  font-weight: 700;
+}
+
+td {
+  border-bottom: 1px solid #e1e7e2;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: #f4f7f4;
+}
+
+@media (max-width: 520px) {
+  th,
+  td {
+    padding: 10px 9px;
+  }
+}

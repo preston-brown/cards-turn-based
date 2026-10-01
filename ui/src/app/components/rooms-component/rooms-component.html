@@ -1,0 +1,35 @@
+<button
+  class="add-remove-button"
+  aria-label="Create room"
+  title="Create room"
+  (click)="createNewRoom()"
+>
+  <svg lucidePlus aria-hidden="true"></svg>
+</button>
+
+@if (rooms$ | async; as rooms) {
+  <table>
+    <thead>
+      <tr>
+        <th scope="col" class="text-column">Room</th>
+        <th scope="col" class="number-column">Max players</th>
+        <th scope="col" class="number-column">Current players</th>
+        <th scope="col" class="number-column">Viewers</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (room of rooms; track room.id) {
+        <tr>
+          <td class="text-column">{{ room.name }}</td>
+          <td class="number-column">{{ room.maxPlayers }}</td>
+          <td class="number-column">0</td>
+          <td class="number-column">0</td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="4">No rooms available.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
